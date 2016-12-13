@@ -133,4 +133,5 @@ def portier_verify(request):
     request.registry.cache.set('portier:' + user_token, email,
                                timedelta(days=1).seconds)
 
-    return httpexceptions.HTTPFound(location='%s%s' % (stored_redirect, user_token))
+    location = '%s%s' % (stored_redirect, user_token)
+    return httpexceptions.HTTPFound(location=location)
