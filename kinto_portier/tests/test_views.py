@@ -188,7 +188,7 @@ class VerifyViewTest(FormattedErrorMixin, BaseWebTest, unittest.TestCase):
 #         self.assertEqual(r.headers['Location'],
 #                          'http://foobar?token=oauth-token')
 # 
-#     def tests_return_503_if_fxa_server_behaves_badly(self):
+#     def tests_return_503_if_portier_server_behaves_badly(self):
 #         self.fxa_trade.side_effect = fxa_errors.OutOfProtocolError
 # 
 #         self.app.app.registry.cache.set('abc', 'http://foobar')
@@ -205,7 +205,7 @@ class VerifyViewTest(FormattedErrorMixin, BaseWebTest, unittest.TestCase):
 
 class CapabilityTestView(BaseWebTest, unittest.TestCase):
 
-    def test_fxa_capability(self, additional_settings=None):
+    def test_portier_capability(self, additional_settings=None):
         resp = self.app.get('/')
         capabilities = resp.json['capabilities']
         self.assertIn('portier', capabilities)
