@@ -29,7 +29,7 @@ def includeme(config):
     defaults = {k: v for k, v in DEFAULT_SETTINGS.items() if k not in settings}
     config.add_settings(defaults)
 
-    # Register heartbeat to ping FxA server.
+    # Register heartbeat to ping the portier broker.
     config.registry.heartbeats['portier'] = portier_ping
 
     config.add_api_capability(

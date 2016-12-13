@@ -56,9 +56,9 @@ class PortierOAuthAuthenticationPolicy(base_auth.CallbackAuthenticationPolicy):
         if key in request.bound_data:
             return request.bound_data[key]
 
-        # Use Portier defaults if not specified
         auth_cache = request.registry.cache
-
+        # XXX: This information should be encrypted somehow.
+        # See https://github.com/mozilla-services/loop-server/blob/master/loop/auth.js#L178
         email = auth_cache.get(token)
 
         # Save for next call.
@@ -71,18 +71,14 @@ def portier_ping(request):
     """Verify if the portier server is ready."""
     server_url = portier_conf(request, 'broker_uri')
 
-    portier = None
-
-    if server_url is not None:
-        portier = False
-
-        try:
-            conf_url = urljoin(server_url, '/.well-known/openid-configuration')
-            timeout = float(portier_conf(request, 'heartbeat_timeout_seconds'))
-            r = requests.get(conf_url, timeout=timeout)
-            r.raise_for_status()
-            portier = True
-        except requests.exceptions.HTTPError:
-            pass
+    portier = False
+    try:
+        conf_url = urljoin(server_url, '/.well-known/openid-configuration')
+        timeout = float(portier_conf(request, 'heartbeat_timeout_seconds'))
+        r = requests.get(conf_url, timeout=timeout)
+        r.raise_for_status()
+        portier = True
+    except requests.exceptions.HTTPError:
+        pass
 
     return portier

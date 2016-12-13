@@ -2,14 +2,14 @@ import json
 import re
 from base64 import urlsafe_b64decode
 from datetime import timedelta
-from six.moves.urllib.request import urlopen
 
 import jwt
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
+from six.moves.urllib.request import urlopen
 
 
-def b64dec(string):
+def b64decode(string):
     """Decode unpadded URL-safe Base64 strings.
     Base64 values in JWTs and JWKs have their padding '=' characters stripped
     during serialization. Before decoding, we must re-append padding characters
@@ -20,8 +20,8 @@ def b64dec(string):
 
 
 def discover_keys(broker, cache):
-    """Discover and return a Broker's public keys.
-    Returns a dict mapping from Key ID strings to Public Key instances.
+    """Discover and return Broker's public keys.
+    Return a dict mapping from Key ID strings to Public Key instances.
     Portier brokers implement the `OpenID Connect Discovery`_ specification.
     This function follows that specification to discover the broker's current
     cryptographic public keys:
@@ -35,14 +35,14 @@ def discover_keys(broker, cache):
     .. _JWK Set: https://tools.ietf.org/html/rfc7517#section-5
     """
     # Check the cache
-    cache_key = 'jwks:' + broker
+    cache_key = 'portier:jwks:' + broker
     raw_jwks = cache.get(cache_key)
     if not raw_jwks:
         # Fetch Discovery Document
         res = urlopen(''.join((broker, '/.well-known/openid-configuration')))
         discovery = json.loads(res.read().decode('utf-8'))
         if 'jwks_uri' not in discovery:
-            raise RuntimeError('No jwks_uri in discovery document')
+            raise ValueError('No jwks_uri in discovery document')
 
         # Fetch JWK Set document
         raw_jwks = urlopen(discovery['jwks_uri']).read()
@@ -53,7 +53,7 @@ def discover_keys(broker, cache):
     # Decode and load the JWK Set document
     jwks = json.loads(raw_jwks.decode('utf-8'))
     if 'keys' not in jwks:
-        raise RuntimeError('No keys found in JWK Set')
+        raise ValueError('No keys found in JWK Set')
 
     # Return the discovered keys as a Key ID -> RSA Public Key dictionary
     return {key['kid']: jwk_to_rsa(key) for key in jwks['keys']
@@ -62,8 +62,8 @@ def discover_keys(broker, cache):
 
 def jwk_to_rsa(key):
     """Convert a deserialized JWK into an RSA Public Key instance."""
-    e = int.from_bytes(b64dec(key['e']), 'big')
-    n = int.from_bytes(b64dec(key['n']), 'big')
+    e = int.from_bytes(b64decode(key['e']), 'big')
+    n = int.from_bytes(b64decode(key['n']), 'big')
     return rsa.RSAPublicNumbers(e, n).public_key(default_backend())
 
 
@@ -90,11 +90,11 @@ def get_verified_email(broker_url, token, audience, issuer, cache):
 
     # Locate the specific key used to sign this JWT via its ``kid`` header.
     raw_header, _, _ = token.partition('.')
-    header = json.loads(b64dec(raw_header).decode('utf-8'))
+    header = json.loads(b64decode(raw_header).decode('utf-8'))
     try:
         pub_key = keys[header['kid']]
     except KeyError:
-        raise RuntimeError('Cannot find public key with ID %s' % header['kid'])
+        raise ValueError('Cannot find public key with ID %s' % header['kid'])
 
     # Verify the JWT's signature and validate its claims
     try:
@@ -104,17 +104,17 @@ def get_verified_email(broker_url, token, audience, issuer, cache):
                              issuer=issuer,
                              leeway=3 * 60)
     except Exception as exc:
-        raise RuntimeError('Invalid JWT: %s' % exc)
+        raise ValueError('Invalid JWT: %s' % exc)
 
     # Validate that the subject resembles an email address
     if not re.match('.+@.+', payload['sub']):
-        raise RuntimeError('Invalid email address: %s' % payload['sub'])
+        raise ValueError('Invalid email address: %s' % payload['sub'])
 
     # Invalidate the nonce used in this JWT to prevent re-use
     nonce_key = "portier:nonce:%s" % payload['nonce']
     redirect_uri = cache.get(nonce_key)
     if not redirect_uri:
-        raise RuntimeError('Invalid, expired, or re-used nonce')
+        raise ValueError('Invalid, expired, or re-used nonce')
     cache.delete(nonce_key)
 
     # Done!

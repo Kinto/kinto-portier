@@ -43,7 +43,7 @@ class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
         self.assertIsNone(user_id)
 
     def test_returns_none_if_token_is_malformed(self):
-        self.request.headers['Authorization'] = 'Bearerfoo'
+        self.request.headers['Authorization'] = 'Portierfoo'
         user_id = self.policy.unauthenticated_userid(self.request)
         self.assertIsNone(user_id)
 

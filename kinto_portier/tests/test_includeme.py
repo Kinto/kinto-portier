@@ -22,7 +22,7 @@ class IncludeMeTest(unittest.TestCase):
         settings = config.get_settings()
         self.assertIsNotNone(settings.get('portier.broker_uri'))
 
-    def test_a_heartbeat_is_registered_at_oauth(self):
+    def test_a_heartbeat_is_registered_at_portier(self):
         config = testing.setUp()
         kinto.core.initialize(config, '0.0.1')
         config.registry.heartbeats = {}

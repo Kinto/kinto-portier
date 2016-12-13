@@ -10,19 +10,17 @@ from pyramid.settings import aslist
 from six.moves.urllib.parse import urlencode, urlparse
 
 from kinto.core import Service, utils
-from kinto.core.errors import json_error_handler, raise_invalid
+from kinto.core.errors import raise_invalid
 from kinto.core.resource.schema import URL
 from kinto_portier.portier import get_verified_email
 from kinto_portier.utils import portier_conf
 
 
 login = Service(name='portier-login',
-                path='/portier/login',
-                error_handler=json_error_handler)
+                path='/portier/login')
 
 verify = Service(name='portier-verify',
-                 path='/portier/verify',
-                 error_handler=json_error_handler)
+                 path='/portier/verify')
 
 
 def persist_nonce(request):
@@ -47,9 +45,6 @@ class PortierLoginRequest(colander.MappingSchema):
 
 def authorized_redirect(req, **kwargs):
     authorized = aslist(portier_conf(req, 'webapp.authorized_domains'))
-    if 'redirect' not in req.validated:
-        return True
-
     domain = urlparse(req.validated['redirect']).netloc
 
     if not any((fnmatch(domain, auth) for auth in authorized)):
@@ -62,7 +57,7 @@ def authorized_redirect(req, **kwargs):
 def portier_login(request):
     """Helper to redirect client towards Portier login form."""
     nonce = persist_nonce(request)
-    form_url = ('{broker_uri}auth?{query_args}')
+    form_url = '{broker_uri}auth?{query_args}'
     broker_uri = portier_conf(request, 'broker_uri')
 
     query_args = urlencode({
@@ -71,13 +66,15 @@ def portier_login(request):
         'nonce': nonce,
         'response_type': 'id_token',
         'response_mode': 'form_post',
+        # Get the data from the config because the request might only
+        # have local network information and not the public facing ones.
         'client_id': '{scheme}://{host}'.format(scheme=request.registry.settings['http_scheme'],
                                                 host=request.registry.settings['http_host']),
         'redirect_uri': request.route_url(verify.name),
     })
 
-    return httpexceptions.HTTPFound(location=form_url.format(broker_uri=broker_uri,
-                                                             query_args=query_args))
+    location = form_url.format(broker_uri=broker_uri, query_args=query_args)
+    return httpexceptions.HTTPFound(location=location)
 
 
 class PortierVerifyQuerystring(colander.MappingSchema):
@@ -111,6 +108,8 @@ def portier_verify(request):
     """Helper to redirect client towards Portier login form."""
     broker_uri = portier_conf(request, 'broker_uri')
     token = request.validated['body']['id_token']
+    # Get the data from the config because the request might only
+    # have local network information and not the public facing ones.
     audience = '{scheme}://{host}'.format(scheme=request.registry.settings['http_scheme'],
                                           host=request.registry.settings['http_host']),
 
@@ -121,7 +120,7 @@ def portier_verify(request):
             audience=audience,
             issuer=broker_uri,
             cache=request.registry.cache)
-    except RuntimeError as exc:
+    except ValueError as exc:
         error_details = {
             'name': 'id_token',
             'location': 'body',
