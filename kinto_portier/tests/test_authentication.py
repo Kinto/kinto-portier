@@ -73,7 +73,7 @@ class PortierPingTest(unittest.TestCase):
         self.request.registry.settings = DEFAULT_SETTINGS
         self.request.registry.settings['portier.broker_uri'] = 'http://broker-portier'
 
-    def test_returns_none_if_oauth_deactivated(self):
+    def test_returns_none_if_portier_deactivated(self):
         self.request.registry.settings['portier.broker_uri'] = None
         self.assertIsNone(authentication.portier_ping(self.request))
 

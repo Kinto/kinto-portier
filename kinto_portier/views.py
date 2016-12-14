@@ -39,12 +39,14 @@ def persist_nonce(request):
 
 
 class PortierLoginRequest(colander.MappingSchema):
-    email = colander.Email()
-    redirect = URL()
+    email = colander.SchemaNode(colander.String(), validator=colander.Email(), required=True)
+    redirect = colander.SchemaNode(colander.String(), validator=colander.url, required=True)
 
 
 def authorized_redirect(req, **kwargs):
     authorized = aslist(portier_conf(req, 'webapp.authorized_domains'))
+    if 'redirect' not in req.validated:
+        return True
     domain = urlparse(req.validated['redirect']).netloc
 
     if not any((fnmatch(domain, auth) for auth in authorized)):
@@ -57,7 +59,7 @@ def authorized_redirect(req, **kwargs):
 def portier_login(request):
     """Helper to redirect client towards Portier login form."""
     nonce = persist_nonce(request)
-    form_url = '{broker_uri}auth?{query_args}'
+    form_url = '{broker_uri}/auth?{query_args}'
     broker_uri = portier_conf(request, 'broker_uri')
 
     query_args = urlencode({
@@ -111,7 +113,7 @@ def portier_verify(request):
     # Get the data from the config because the request might only
     # have local network information and not the public facing ones.
     audience = '{scheme}://{host}'.format(scheme=request.registry.settings['http_scheme'],
-                                          host=request.registry.settings['http_host']),
+                                          host=request.registry.settings['http_host'])
 
     try:
         email, stored_redirect = get_verified_email(

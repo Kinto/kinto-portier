@@ -16,7 +16,7 @@ def b64decode(string):
     so that the encoded value's final length is evenly divisible by 4.
     """
     padding = '=' * ((4 - len(string) % 4) % 4)
-    return urlsafe_b64decode(string + padding)
+    return urlsafe_b64decode((string + padding).encode('utf-8'))
 
 
 def discover_keys(broker, cache):
@@ -62,8 +62,8 @@ def discover_keys(broker, cache):
 
 def jwk_to_rsa(key):
     """Convert a deserialized JWK into an RSA Public Key instance."""
-    e = int.from_bytes(b64decode(key['e']), 'big')
-    n = int.from_bytes(b64decode(key['n']), 'big')
+    e = int(b64decode(key['e']).encode('hex'), 16)
+    n = int(b64decode(key['n']).encode('hex'), 16)
     return rsa.RSAPublicNumbers(e, n).public_key(default_backend())
 
 
