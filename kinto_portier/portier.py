@@ -4,9 +4,9 @@ from base64 import urlsafe_b64decode
 from datetime import timedelta
 
 import jwt
+import requests
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
-from six.moves.urllib.request import urlopen
 
 
 def b64decode(string):
@@ -39,13 +39,13 @@ def discover_keys(broker, cache):
     raw_jwks = cache.get(cache_key)
     if not raw_jwks:
         # Fetch Discovery Document
-        res = urlopen(''.join((broker, '/.well-known/openid-configuration')))
-        discovery = json.loads(res.read().decode('utf-8'))
+        res = requests.get('%s/.well-known/openid-configuration' % broker)
+        discovery = res.json()
         if 'jwks_uri' not in discovery:
             raise ValueError('No jwks_uri in discovery document')
 
         # Fetch JWK Set document
-        raw_jwks = urlopen(discovery['jwks_uri']).read()
+        raw_jwks = requests.get(discovery['jwks_uri']).text
 
         # Cache JWK Set document
         cache.set(cache_key, raw_jwks, timedelta(minutes=5).seconds)

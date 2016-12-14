@@ -19,6 +19,7 @@ REQUIREMENTS = [
     'kinto',
     'cryptography',
     'PyJWT',
+    'requests',
     'six',
 ]
 
