@@ -1,7 +1,7 @@
 import colander
 import uuid
+import os
 
-from datetime import timedelta
 from fnmatch import fnmatch
 from cornice.validators import colander_validator, colander_body_validator
 from pyramid import httpexceptions
@@ -11,7 +11,7 @@ from six.moves.urllib.parse import urlencode, urlparse
 
 from kinto.core import Service, utils
 from kinto.core.errors import raise_invalid
-from kinto.core.resource.schema import URL
+from kinto_portier.crypto import encrypt
 from kinto_portier.portier import get_verified_email
 from kinto_portier.utils import portier_conf
 
@@ -130,10 +130,19 @@ def portier_verify(request):
         }
         raise_invalid(request, **error_details)
 
+    # Generate a random token
+    user_token = os.urandom(32).encode('hex')
+
+    # Encrypt the email with the token
+    encrypted_email = encrypt(email, user_token)
+
+    # Generate a user ID from the token
     hmac_secret = request.registry.settings['userid_hmac_secret']
-    user_token = utils.hmac_digest(hmac_secret, email)
-    request.registry.cache.set('portier:' + user_token, email,
-                               timedelta(days=1).seconds)
+    userID = utils.hmac_digest(hmac_secret, user_token)
+
+    # Store the encrypted user ID with the token
+    session_ttl = portier_conf(request, 'session_ttl_seconds')
+    request.registry.cache.set('portier:' + userID, encrypted_email, session_ttl)
 
     location = '%s%s' % (stored_redirect, user_token)
     return httpexceptions.HTTPFound(location=location)

@@ -6,6 +6,8 @@ from pyramid.interfaces import IAuthenticationPolicy
 from six.moves.urllib.parse import urljoin
 from zope.interface import implementer
 
+from kinto.core import utils
+from kinto_portier.crypto import decrypt
 from kinto_portier.utils import portier_conf
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,7 @@ class PortierOAuthAuthenticationPolicy(base_auth.CallbackAuthenticationPolicy):
         """
         return [('WWW-Authenticate', 'Portier realm="%s"' % self.realm)]
 
-    def _verify_token(self, token, request):
+    def _verify_token(self, user_token, request):
         """Verify the token extracted from the Authorization header.
 
         This method stores the result in two locations to avoid hitting the
@@ -56,10 +58,14 @@ class PortierOAuthAuthenticationPolicy(base_auth.CallbackAuthenticationPolicy):
         if key in request.bound_data:
             return request.bound_data[key]
 
+        hmac_secret = request.registry.settings['userid_hmac_secret']
+        userID = utils.hmac_digest(hmac_secret, user_token)
         auth_cache = request.registry.cache
         # XXX: This information should be encrypted somehow.
         # See https://github.com/mozilla-services/loop-server/blob/master/loop/auth.js#L178
-        email = auth_cache.get(token)
+        encrypted_email = auth_cache.get("portier:%s" % userID)
+
+        email = decrypt(encrypted_email, user_token)
 
         # Save for next call.
         request.bound_data[key] = email
