@@ -65,6 +65,9 @@ class PortierOAuthAuthenticationPolicy(base_auth.CallbackAuthenticationPolicy):
         # See https://github.com/mozilla-services/loop-server/blob/master/loop/auth.js#L178
         encrypted_email = auth_cache.get("portier:%s" % userID)
 
+        if encrypted_email is None:
+            return None
+        
         email = decrypt(encrypted_email, user_token)
 
         # Save for next call.
