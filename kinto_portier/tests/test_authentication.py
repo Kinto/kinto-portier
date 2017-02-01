@@ -1,5 +1,3 @@
-import base64
-import os
 import unittest
 
 import mock
@@ -52,7 +50,7 @@ class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
         user_id = self.policy.unauthenticated_userid(self.request)
         self.assertIsNone(user_id)
 
-    def test_returns_none_if_token_is_unknown(self):
+    def test_returns_none_if_realm_is_unknown(self):
         self.request.headers['Authorization'] = 'Carrier foo'
         user_id = self.policy.authenticated_userid(self.request)
         self.assertIsNone(user_id)
@@ -70,6 +68,17 @@ class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
         headers = policy.forget(self.request)
         self.assertEqual(headers[0],
                          ('WWW-Authenticate', 'Portier realm="Who"'))
+
+    def test_does_not_verify_token_again_for_subrequests(self):
+        self.request.bound_data['portier_verified_token'] = 'foo@bar.com'
+        user_id = self.policy.authenticated_userid(self.request)
+        self.assertEqual(self.email, user_id)
+
+    def test_returns_none_if_token_is_unknown(self):
+        token = self.token[::-1]
+        self.request.headers['Authorization'] = 'Portier %s' % token
+        user_id = self.policy.authenticated_userid(self.request)
+        self.assertIsNone(user_id)
 
 
 class PortierPingTest(unittest.TestCase):

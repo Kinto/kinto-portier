@@ -52,7 +52,7 @@ tests-once: install-dev
 	$(VENV)/bin/py.test --cov-report term-missing --cov-fail-under 100 --cov kinto_portier
 
 flake8: install-dev
-	$(VENV)/bin/flake8 kinto tests
+	$(VENV)/bin/flake8 kinto_portier
 
 clean:
 	find . -name '*.pyc' -delete

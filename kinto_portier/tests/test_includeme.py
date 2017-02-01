@@ -1,10 +1,8 @@
-import mock
 import unittest
 
 import kinto.core
 from pyramid.exceptions import ConfigurationError
 from pyramid import testing
-from pyramid.config import Configurator
 
 from kinto_portier import includeme
 

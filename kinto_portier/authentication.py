@@ -61,9 +61,6 @@ class PortierOAuthAuthenticationPolicy(base_auth.CallbackAuthenticationPolicy):
         hmac_secret = request.registry.settings['userid_hmac_secret']
         userID = utils.hmac_digest(hmac_secret, user_token)
         auth_cache = request.registry.cache
-        # XXX: This information should be encrypted somehow.
-        # See https://github.com/mozilla-services/loop-server/blob/master/loop/auth.js#L178
-        print("portier:%s" % userID)
         encrypted_email = auth_cache.get("portier:%s" % userID)
 
         if encrypted_email is None:
