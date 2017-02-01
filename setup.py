@@ -21,6 +21,7 @@ REQUIREMENTS = [
     'PyJWT',
     'requests',
     'six',
+    'portier-python',
 ]
 
 DEPENDENCY_LINKS = []

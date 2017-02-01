@@ -63,11 +63,12 @@ class PortierOAuthAuthenticationPolicy(base_auth.CallbackAuthenticationPolicy):
         auth_cache = request.registry.cache
         # XXX: This information should be encrypted somehow.
         # See https://github.com/mozilla-services/loop-server/blob/master/loop/auth.js#L178
+        print("portier:%s" % userID)
         encrypted_email = auth_cache.get("portier:%s" % userID)
 
         if encrypted_email is None:
             return None
-        
+
         email = decrypt(encrypted_email, user_token)
 
         # Save for next call.

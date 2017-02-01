@@ -12,8 +12,8 @@ from six.moves.urllib.parse import urlencode, urlparse
 from kinto.core import Service, utils
 from kinto.core.errors import raise_invalid
 from kinto_portier.crypto import encrypt
-from kinto_portier.portier import get_verified_email
 from kinto_portier.utils import portier_conf
+from portier import get_verified_email
 
 
 login = Service(name='portier-login',

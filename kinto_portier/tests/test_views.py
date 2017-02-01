@@ -13,6 +13,12 @@ from time import sleep
 from kinto_portier import __version__ as portier_version
 
 
+MINIMAL_PORTIER_REQUEST = {
+    "redirect": "http://iam.whitelist.ed",
+    "email": "foo@bar.com"
+}
+
+
 def get_request_class(prefix):
 
     class PrefixedRequestClass(webtest.app.TestRequest):
@@ -78,29 +84,43 @@ class LoginViewTest(BaseWebTest, unittest.TestCase):
         })
         return super(LoginViewTest, self).get_app_settings(additional_settings)
 
-    def test_redirect_parameter_is_mandatory(self):
+    def test_email_parameter_is_mandatory(self):
         r = self.app.post(self.url, status=400)
+        self.assertIn('email', r.json['message'])
+
+    def test_redirect_parameter_is_mandatory(self):
+        body = MINIMAL_PORTIER_REQUEST.copy()
+        del body['redirect']
+        r = self.app.post_json(self.url, body, status=400)
         self.assertIn('redirect', r.json['message'])
 
     def test_redirect_parameter_should_be_refused_if_not_whitelisted(self):
-        r = self.app.post_json(self.url, {"redirect": "http://not-whitelisted.tld"}, status=400)
+        body = MINIMAL_PORTIER_REQUEST.copy()
+        body['redirect'] = "http://not-whitelisted.tld"
+
+        r = self.app.post_json(self.url, body, status=400)
         self.assertIn('redirect', r.json['message'])
 
     def test_redirect_parameter_should_be_accepted_if_whitelisted(self):
         with mock.patch.dict(self.app.app.registry.settings,
                              [('portier.webapp.authorized_domains',
                                '*.whitelist.ed')]):
-            self.app.post_json(self.url, {"redirect": "http://iam.whitelist.ed"})
+            self.app.post_json(self.url, MINIMAL_PORTIER_REQUEST)
 
     def test_redirect_parameter_should_be_rejected_if_no_whitelist(self):
         with mock.patch.dict(self.app.app.registry.settings,
                              [('portier.webapp.authorized_domains',
                                '')]):
-            r = self.app.post_json(self.url, {"redirect": "http://iam.whitelist.ed"}, status=400)
-        self.assertIn('redirect', r.json['message'])
+            r = self.app.post_json(self.url, MINIMAL_PORTIER_REQUEST, status=400)
+        self.assertIn('redirect URL is not authorized', r.json['message'])
 
     def test_login_view_persists_nonce(self):
-        r = self.app.post_json(self.url, {"redirect": "https://readinglist.firefox.com"})
+        body = MINIMAL_PORTIER_REQUEST.copy()
+        body['redirect'] = "https://readinglist.firefox.com"
+        with mock.patch.dict(self.app.app.registry.settings,
+                             [('portier.webapp.authorized_domains',
+                               '*.firefox.com')]):
+            r = self.app.post_json(self.url, body)
         url = r.headers['Location']
         url_fragments = urlparse(url)
         queryparams = parse_qs(url_fragments.query)
@@ -109,20 +129,30 @@ class LoginViewTest(BaseWebTest, unittest.TestCase):
                          'https://readinglist.firefox.com')
 
     def test_login_view_persists_nonce_with_expiration(self):
-        r = self.app.get(self.url)
+        body = MINIMAL_PORTIER_REQUEST.copy()
+        body['redirect'] = "https://readinglist.firefox.com"
+        with mock.patch.dict(self.app.app.registry.settings,
+                             [('portier.webapp.authorized_domains',
+                               '*.firefox.com')]):
+            r = self.app.post_json(self.url, body)
         url = r.headers['Location']
         url_fragments = urlparse(url)
         queryparams = parse_qs(url_fragments.query)
         nonce = queryparams['nonce'][0]
-        self.assertGreater(self.app.app.registry.cache.ttl(nonce), 299)
-        self.assertLessEqual(self.app.app.registry.cache.ttl(nonce), 300)
+        self.assertGreater(self.app.app.registry.cache.ttl('portier:nonce:%s' % nonce), 299)
+        self.assertLessEqual(self.app.app.registry.cache.ttl('portier:nonce:%s' % nonce), 300)
 
     def test_login_view_redirects_to_authorization(self):
         settings = self.app.app.registry.settings
         oauth_endpoint = settings.get('portier.broker_uri')
         scope = '+'.join(settings.get('portier.requested_scope').split())
 
-        r = self.app.get(self.url)
+        body = MINIMAL_PORTIER_REQUEST.copy()
+        body['redirect'] = "https://readinglist.firefox.com"
+        with mock.patch.dict(self.app.app.registry.settings,
+                             [('portier.webapp.authorized_domains',
+                               '*.firefox.com')]):
+            r = self.app.post_json(self.url, body)
         self.assertEqual(r.status_code, 302)
         assert r.headers['Location'].startswith(oauth_endpoint + '/auth')
         assert scope in r.headers['Location']

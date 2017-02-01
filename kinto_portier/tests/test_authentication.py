@@ -1,26 +1,31 @@
-import time
+import base64
+import os
 import unittest
 
 import mock
 import requests
+
 from kinto.core.cache import memory as memory_backend
 from kinto.core.testing import DummyRequest
 from kinto.core.utils import random_bytes_hex, hmac_digest
-from pyramid import httpexceptions
 
 from kinto_portier import authentication, DEFAULT_SETTINGS
+from kinto_portier.crypto import encrypt
 
 
 class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
     def setUp(self):
         self.policy = authentication.PortierOAuthAuthenticationPolicy()
-        self.backend = memory_backend.Cache(cache_prefix="tests")
+        self.backend = memory_backend.Cache(cache_prefix="")
         self.user_hmac_secret = random_bytes_hex(16)
 
         # Setup user
+        self.token = '4128913851c9c4305e43dba2a7e59baa5c2fe2b909c6b63d04668346c4fb1e7b'
         self.email = 'foo@bar.com'
-        self.user_key = hmac_digest(self.user_hmac_secret, self.email)
-        self.backend.set(self.user_key, self.email)
+        encrypted_email = encrypt(self.email, self.token)
+        self.user_key = hmac_digest(self.user_hmac_secret, self.token)
+        print("portier:%s" % self.user_key)
+        self.backend.set("portier:%s" % self.user_key, encrypted_email)
         self.request = self._build_request()
 
     def tearDown(self):
@@ -34,7 +39,7 @@ class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
         settings['portier.cache_ttl_seconds'] = '0.01'
         settings['userid_hmac_secret'] = self.user_hmac_secret
         request.registry.settings = settings
-        request.headers['Authorization'] = 'Portier %s' % self.user_key
+        request.headers['Authorization'] = 'Portier %s' % self.token
         return request
 
     def test_returns_none_if_authorization_header_is_missing(self):
