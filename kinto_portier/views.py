@@ -1,8 +1,9 @@
-import colander
-import uuid
+import codecs
 import os
-
+import uuid
 from fnmatch import fnmatch
+
+import colander
 from cornice.validators import colander_validator, colander_body_validator
 from pyramid import httpexceptions
 from pyramid.security import NO_PERMISSION_REQUIRED
@@ -10,7 +11,7 @@ from pyramid.settings import aslist
 from six.moves.urllib.parse import urlencode, urlparse
 
 from kinto.core import Service, utils
-from kinto.core.errors import raise_invalid
+from kinto.core.errors import ERRORS, http_error
 from kinto_portier.crypto import encrypt
 from kinto_portier.utils import portier_conf
 from portier import get_verified_email
@@ -123,15 +124,13 @@ def portier_verify(request):
             issuer=broker_uri,
             cache=request.registry.cache)
     except ValueError as exc:
-        error_details = {
-            'name': 'id_token',
-            'location': 'body',
-            'description': 'Portier token validation failed: %s' % exc
-        }
-        raise_invalid(request, **error_details)
+        error_details = 'Portier token validation failed: %s' % exc
+        return http_error(httpexceptions.HTTPBadRequest(),
+                          errno=ERRORS.INVALID_AUTH_TOKEN, error='Invalid Auth Token',
+                          message=error_details)
 
     # Generate a random token
-    user_token = os.urandom(32).encode('hex')
+    user_token = codecs.encode(os.urandom(32), 'hex').decode('utf-8')
 
     # Encrypt the email with the token
     encrypted_email = encrypt(email, user_token)

@@ -14,7 +14,7 @@ from kinto_portier.crypto import encrypt
 class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
     def setUp(self):
         self.policy = authentication.PortierOAuthAuthenticationPolicy()
-        self.backend = memory_backend.Cache(cache_prefix="")
+        self.backend = memory_backend.Cache(cache_prefix="", cache_max_size_bytes=5123)
         self.user_hmac_secret = random_bytes_hex(16)
 
         # Setup user
