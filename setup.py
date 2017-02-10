@@ -17,6 +17,11 @@ with codecs.open(os.path.join(here, 'CONTRIBUTORS.rst'),
 
 REQUIREMENTS = [
     'kinto',
+    'cryptography',
+    'PyJWT',
+    'requests',
+    'six',
+    'portier-python',
 ]
 
 DEPENDENCY_LINKS = []

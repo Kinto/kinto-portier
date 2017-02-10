@@ -64,6 +64,7 @@ Fill those settings with the values obtained during the application registration
 ::
 
     kinto.portier.broker_url = https://broker.portier.io
+    kinto.portier.webapp.authorized_domains = *.github.io
     # kinto.portier.cache_ttl_seconds = 300
     # kinto.portier.state.ttl_seconds = 3600
 
