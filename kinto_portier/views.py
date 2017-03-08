@@ -8,7 +8,7 @@ from cornice.validators import colander_validator, colander_body_validator
 from pyramid import httpexceptions
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.settings import aslist
-from six.moves.urllib.parse import urlencode, urlparse
+from urllib.parse import urlencode, urlparse
 
 from kinto.core import Service, utils
 from kinto.core.errors import ERRORS, http_error

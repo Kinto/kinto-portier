@@ -33,7 +33,7 @@ class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
         request = DummyRequest()
         request.bound_data = {}
         request.registry.cache = self.backend
-        settings = DEFAULT_SETTINGS.copy()
+        settings = {**DEFAULT_SETTINGS}
         settings['portier.cache_ttl_seconds'] = '0.01'
         settings['userid_hmac_secret'] = self.user_hmac_secret
         request.registry.settings = settings
