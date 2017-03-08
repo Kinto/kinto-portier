@@ -20,7 +20,6 @@ REQUIREMENTS = [
     'cryptography',
     'PyJWT',
     'requests',
-    'six',
     'portier-python',
 ]
 

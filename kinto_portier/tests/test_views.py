@@ -7,7 +7,7 @@ from kinto.core.errors import ERRORS
 from kinto.core.testing import FormattedErrorMixin
 from kinto.core.utils import random_bytes_hex
 from pyramid.config import Configurator
-from six.moves.urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 
 from kinto_portier import __version__ as portier_version
 

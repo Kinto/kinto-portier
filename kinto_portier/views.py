@@ -8,7 +8,7 @@ from cornice.validators import colander_validator, colander_body_validator
 from pyramid import httpexceptions
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.settings import aslist
-from six.moves.urllib.parse import urlencode, urlparse
+from urllib.parse import urlencode, urlparse
 
 from kinto.core import Service, utils
 from kinto.core.errors import ERRORS, http_error
@@ -141,7 +141,7 @@ def portier_verify(request):
 
     # Store the encrypted user ID with the token
     session_ttl = portier_conf(request, 'session_ttl_seconds')
-    request.registry.cache.set('portier:' + userID, encrypted_email, session_ttl)
+    request.registry.cache.set('portier:' + userID, encrypted_email.decode('utf-8'), session_ttl)
 
     location = '%s%s' % (stored_redirect, user_token)
     return httpexceptions.HTTPFound(location=location)

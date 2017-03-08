@@ -3,7 +3,7 @@ import requests
 
 from pyramid import authentication as base_auth
 from pyramid.interfaces import IAuthenticationPolicy
-from six.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
 from zope.interface import implementer
 
 from kinto.core import utils

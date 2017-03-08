@@ -23,7 +23,7 @@ class PortierOAuthAuthenticationPolicyTest(unittest.TestCase):
         encrypted_email = encrypt(self.email, self.token)
         self.user_key = hmac_digest(self.user_hmac_secret, self.token)
         print("portier:%s" % self.user_key)
-        self.backend.set("portier:%s" % self.user_key, encrypted_email)
+        self.backend.set("portier:%s" % self.user_key, encrypted_email.decode('utf-8'))
         self.request = self._build_request()
 
     def tearDown(self):
