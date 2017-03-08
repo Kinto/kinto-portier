@@ -66,7 +66,7 @@ class PortierOAuthAuthenticationPolicy(base_auth.CallbackAuthenticationPolicy):
         if encrypted_email is None:
             return None
 
-        email = decrypt(encrypted_email.encode('utf-8'), user_token)
+        email = decrypt(encrypted_email, user_token)
 
         # Save for next call.
         request.bound_data[key] = email

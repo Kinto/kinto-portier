@@ -141,7 +141,7 @@ def portier_verify(request):
 
     # Store the encrypted user ID with the token
     session_ttl = portier_conf(request, 'session_ttl_seconds')
-    request.registry.cache.set('portier:' + userID, encrypted_email.decode('utf-8'), session_ttl)
+    request.registry.cache.set('portier:' + userID, encrypted_email, session_ttl)
 
     location = '%s%s' % (stored_redirect, user_token)
     return httpexceptions.HTTPFound(location=location)
