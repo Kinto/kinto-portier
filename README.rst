@@ -29,9 +29,6 @@ It provides:
 Installation
 ------------
 
-As `stated in the official documentation <https://developer.mozilla.org/en-US/Firefox_Accounts>`_,
-Firefox Accounts OAuth integration is currently limited to Mozilla relying services.
-
 Install the Python package:
 
 ::
