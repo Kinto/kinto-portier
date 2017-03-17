@@ -4,7 +4,9 @@ import uuid
 from fnmatch import fnmatch
 
 import colander
-from cornice.validators import colander_validator, colander_body_validator
+from cornice.validators import (
+    colander_validator, colander_body_validator)
+
 from pyramid import httpexceptions
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.settings import aslist
@@ -39,6 +41,33 @@ def persist_nonce(request):
     return nonce
 
 
+def colander_querystring_validator(request, schema=None, deserializer=None, **kwargs):
+    """
+    Validate the querystring against the schema defined on the service.
+
+    The content of the querystring is deserialized, validated and stored in the
+    ``request.validated`` attribute.
+
+    .. note::
+
+        If no schema is defined, this validator does nothing.
+
+    :param request: Current request
+    :type request: :class:`~pyramid:pyramid.request.Request`
+
+    :param schema: The Colander schema
+    :param deserializer: Optional deserializer, defaults to
+        :func:`cornice.validators.extract_cstruct`
+    """
+    import colander
+
+    class RequestSchema(colander.MappingSchema):
+        querystring = schema
+
+    colander_validator(request, RequestSchema(), deserializer, **kwargs)
+    request.validated = request.validated.get('querystring', {})
+
+
 class PortierLoginRequest(colander.MappingSchema):
     email = colander.SchemaNode(colander.String(), validator=colander.Email(), required=True)
     redirect = colander.SchemaNode(colander.String(), validator=colander.url, required=True)
@@ -55,6 +84,8 @@ def authorized_redirect(req, **kwargs):
                        'redirect URL is not authorized')
 
 
+@login.get(schema=PortierLoginRequest(), permission=NO_PERMISSION_REQUIRED,
+           validators=(colander_querystring_validator, authorized_redirect))
 @login.post(schema=PortierLoginRequest(), permission=NO_PERMISSION_REQUIRED,
             validators=(colander_body_validator, authorized_redirect))
 def portier_login(request):
