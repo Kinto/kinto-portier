@@ -59,8 +59,6 @@ def colander_querystring_validator(request, schema=None, deserializer=None, **kw
     :param deserializer: Optional deserializer, defaults to
         :func:`cornice.validators.extract_cstruct`
     """
-    import colander
-
     class RequestSchema(colander.MappingSchema):
         querystring = schema
 
