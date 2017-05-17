@@ -10,7 +10,7 @@ __version__ = pkg_resources.get_distribution(__package__).version
 
 DEFAULT_SETTINGS = {
     'portier.cache_ttl_seconds': 5 * 60,
-    'portier.session_ttl_seconds': None,
+    'portier.session_ttl_seconds':  15 * 60,
     'portier.heartbeat_timeout_seconds': 3,
     'portier.broker_uri': "https://broker.portier.io",
     'portier.requested_scope': 'openid email',
