@@ -38,14 +38,14 @@ Install the Python package:
 
 Include the package in the project configuration:
 
-::
+.. code-block:: ini
 
     kinto.includes = kinto_portier
 
 And configure authentication policy using `pyramid_multiauth
 <https://github.com/mozilla-services/pyramid_multiauth#deployment-settings>`_ formalism:
 
-::
+.. code-block:: ini
 
     multiauth.policies = portier
     multiauth.policy.portier.use = kinto_portier.authentication.PortierOAuthAuthenticationPolicy
@@ -58,7 +58,7 @@ Configuration
 
 Fill those settings with the values obtained during the application registration:
 
-::
+.. code-block:: ini
 
     kinto.portier.broker_url = https://broker.portier.io
     kinto.portier.webapp.authorized_domains = *.github.io
