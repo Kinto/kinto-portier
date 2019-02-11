@@ -23,8 +23,6 @@ REQUIREMENTS = [
     'portier-python',
 ]
 
-DEPENDENCY_LINKS = []
-
 ENTRY_POINTS = {}
 
 
@@ -51,5 +49,4 @@ setup(name='kinto-portier',
       zip_safe=False,
       install_requires=REQUIREMENTS,
       extras_require={},
-      dependency_links=DEPENDENCY_LINKS,
       entry_points=ENTRY_POINTS)
