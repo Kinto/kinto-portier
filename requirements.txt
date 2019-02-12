@@ -21,7 +21,7 @@ PasteDeploy==2.0.1
 plaster==1.0
 plaster-pastedeploy==0.6
 portier-python==0.1.1
-pycparser==2.18
+pycparser==2.19
 PyJWT==1.6.4
 pyramid==1.9.2
 pyramid-multiauth==0.9.0
