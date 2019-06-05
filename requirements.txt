@@ -9,7 +9,7 @@ cornice==3.5.1
 cornice-swagger==0.7.0
 cryptography==2.7
 dockerflow==2019.5.0
-hupper==1.6.1
+hupper==1.7
 idna==2.8
 iso8601==0.1.12
 jsonpatch==1.23
