@@ -4,5 +4,4 @@ mock
 pytest
 pytest-cache
 pytest-cover
-pytest-sugar
 WebTest
