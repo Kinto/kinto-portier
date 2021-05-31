@@ -10,7 +10,7 @@ cornice-swagger==1.0.0
 cryptography==3.4.7
 dockerflow==2020.10.0
 hupper==1.10.3
-idna==3.1
+idna==3.2
 iso8601==0.1.14
 jsonpatch==1.32
 jsonpointer==2.1
